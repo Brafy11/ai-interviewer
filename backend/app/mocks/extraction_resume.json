@@ -1,0 +1,39 @@
+{
+  "name": "Maria Lopez",
+  "summary": "Compassionate home caregiver with about three years of experience supporting elderly and disabled clients with their daily living activities. Bilingual in English and Spanish.",
+  "work_experience": [
+    {
+      "role": "In-Home Caregiver",
+      "org": "Comfort Keepers of Austin",
+      "duration": "2021 - Present",
+      "responsibilities": [
+        "Assist two elderly clients with bathing, dressing, and grooming",
+        "Prepare meals following dietary restrictions",
+        "Help with mobility, including transfers from bed to wheelchair",
+        "Provide companionship and medication reminders"
+      ]
+    },
+    {
+      "role": "Food Service Worker",
+      "org": "Taco Cabana",
+      "duration": "2019 - 2021",
+      "responsibilities": [
+        "Prepared food orders in a fast-paced kitchen",
+        "Maintained cleanliness and sanitation standards"
+      ]
+    }
+  ],
+  "skills": [
+    "Meal preparation",
+    "Personal hygiene assistance",
+    "Mobility and transfer assistance",
+    "Companionship",
+    "Medication reminders",
+    "Bilingual (English/Spanish)"
+  ],
+  "certifications": ["CPR/First Aid (expired 2024)"],
+  "education": ["Austin Community College - some coursework in nursing assistance"],
+  "availability_notes": "Available weekdays; prefers daytime hours",
+  "transportation_notes": null,
+  "other_relevant": ["Comfortable working with clients who primarily speak Spanish"]
+}

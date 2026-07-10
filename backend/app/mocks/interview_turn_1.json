@@ -1,0 +1,8 @@
+{
+  "question": "You mentioned you usually find a way to get around. To be specific, do you have a valid driver's license and a reliable vehicle available for every shift?",
+  "targets": ["weak_or_missing:0"],
+  "is_followup": true,
+  "reasoning": "The previous answer was vague about the license and vehicle reliability, so one follow-up is warranted before moving on.",
+  "should_end": false,
+  "coverage_notes": "Transportation partially covered; asked one follow-up to pin down license and vehicle reliability."
+}

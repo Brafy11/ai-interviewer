@@ -1,0 +1,8 @@
+{
+  "question": "You have about three years at Comfort Keepers. Can you describe the mobility transfers you performed and any hands-on training you received for them?",
+  "targets": ["claims_to_verify:1", "claims_to_verify:0"],
+  "is_followup": false,
+  "reasoning": "With the priority gaps covered, verifying the depth of experience and transfer competence is the last useful area before concluding.",
+  "should_end": true,
+  "coverage_notes": "All high and medium gaps covered; verifying experience depth and transfer skills, then concluding the interview."
+}

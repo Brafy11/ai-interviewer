@@ -1,0 +1,48 @@
+{
+  "strong_matches": [
+    {
+      "requirement": "At least 1 year of caregiving experience",
+      "evidence_from_resume": "About three years as an in-home caregiver at Comfort Keepers, assisting elderly clients with daily living activities."
+    },
+    {
+      "requirement": "Assist clients with activities of daily living and provide mobility assistance",
+      "evidence_from_resume": "Lists bathing, dressing, grooming, meal preparation, and bed-to-wheelchair transfers."
+    },
+    {
+      "requirement": "Bilingual (English/Spanish) - preferred qualification",
+      "evidence_from_resume": "States bilingual in English and Spanish and comfort working with clients who primarily speak Spanish."
+    }
+  ],
+  "weak_or_missing": [
+    {
+      "requirement": "Valid driver's license and reliable transportation",
+      "why_weak": "The resume has no mention of a driver's license or transportation, and the transportation_notes field is empty.",
+      "priority": "high"
+    },
+    {
+      "requirement": "Availability including weekends and evenings",
+      "why_weak": "The resume states availability is weekdays with a preference for daytime hours, which conflicts with the required weekend and evening shifts.",
+      "priority": "high"
+    },
+    {
+      "requirement": "Current CPR and First Aid certification",
+      "why_weak": "The certification is listed as expired in 2024, so it is not currently valid.",
+      "priority": "medium"
+    },
+    {
+      "requirement": "Negative TB test within the last 12 months",
+      "why_weak": "No TB test is mentioned anywhere in the resume.",
+      "priority": "medium"
+    }
+  ],
+  "claims_to_verify": [
+    {
+      "claim": "About three years of caregiving experience",
+      "why_verify": "The duration is stated as '2021 - Present' but the depth and consistency of the experience should be confirmed."
+    },
+    {
+      "claim": "Experience with mobility transfers",
+      "why_verify": "Transfers require technique and physical capability, so hands-on competence and any training should be confirmed."
+    }
+  ]
+}

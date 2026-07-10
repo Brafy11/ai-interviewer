@@ -1,0 +1,8 @@
+{
+  "question": "The role requires a valid driver's license and reliable transportation to travel between clients. Can you tell me about your current transportation situation?",
+  "targets": ["weak_or_missing:0"],
+  "is_followup": false,
+  "reasoning": "Transportation is a high-priority gap with no evidence in the resume, so it needs direct confirmation first.",
+  "should_end": false,
+  "coverage_notes": "Opened on the highest-priority gap: transportation."
+}
