@@ -3,4 +3,5 @@ __pycache__/
 .venv/
 node_modules/
 *.db
+sample_resume.pdf
 PLAN.md

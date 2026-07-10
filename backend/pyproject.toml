@@ -10,4 +10,5 @@ dependencies = [
     "anthropic",
     "pypdf",
     "python-dotenv",
+    "python-multipart>=0.0.32",
 ]

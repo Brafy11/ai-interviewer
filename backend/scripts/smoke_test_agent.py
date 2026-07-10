@@ -67,7 +67,7 @@ def main() -> None:
             followups += 1
         print(f"  Q{len(history) + 1} (targets {turn.targets}): {turn.question}")
         history.append({"question": turn.question, "answer": answer})
-        if should_end_interview(turn, question_count=len(history)):
+        if should_end_interview(turn.should_end, question_count=len(history)):
             break
 
     assert len(history) == 6, f"expected 6 turns, got {len(history)}"

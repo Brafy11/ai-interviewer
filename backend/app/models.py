@@ -40,6 +40,11 @@ class Turn(SQLModel, table=True):
     answer: str | None = Field(default=None)
     targets: list | None = Field(default=None, sa_column=Column(JSON))
     is_followup: bool = Field(default=False)
+    # The agent decides "this is the last question" when it asks the question,
+    # but the answer that lets us act on it arrives in a later, separate HTTP
+    # request. Persisting the flag lets us honor it then without a second model
+    # call whose question we'd throw away.
+    should_end: bool = Field(default=False)
 
 
 class Report(SQLModel, table=True):

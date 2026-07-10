@@ -62,10 +62,14 @@ def next_turn(
     )
 
 
-def should_end_interview(turn: InterviewTurn, question_count: int) -> bool:
-    """Decide whether to stop, given the latest turn and how many have been asked."""
+def should_end_interview(should_end: bool, question_count: int) -> bool:
+    """Apply the hybrid termination rule to the latest turn's should_end flag.
+
+    Takes the flag rather than the whole turn so both the in-memory smoke test
+    and the stateless API route (which only has the persisted flag) can call it.
+    """
     if question_count < MIN_QUESTIONS:
         return False
     if question_count >= MAX_QUESTIONS:
         return True
-    return turn.should_end
+    return should_end

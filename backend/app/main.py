@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from app import models  # noqa: F401 — registers tables with SQLModel.metadata
 from app.db import create_db_and_tables
+from app.routes import job_descriptions, resumes, sessions
 
 load_dotenv()
 
@@ -17,6 +18,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AI Interviewer", lifespan=lifespan)
+
+app.include_router(resumes.router)
+app.include_router(job_descriptions.router)
+app.include_router(sessions.router)
 
 
 @app.get("/api/health")
