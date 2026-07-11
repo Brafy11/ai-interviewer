@@ -29,6 +29,7 @@ import {
   type ResumeSummary,
   type SessionSummary,
 } from "@/lib/api";
+import { FormatDate } from "@/lib/format";
 
 const EXAMPLE_JD = `Caregiver (CNA / HHA / PCA / Home Health Aide) — Sigma HomeCare
 
@@ -420,6 +421,9 @@ function SessionRow({
           {session.resume_filename ?? "unknown résumé"} · {session.question_count} questions
         </p>
       </div>
+      <span className="hidden shrink-0 text-xs text-base-content/45 sm:block">
+        {FormatDate(session.created_at)}
+      </span>
       <span
         className={`flex shrink-0 items-center gap-1.5 rounded px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-widest ${
           done ? "bg-secondary/10 text-secondary" : "bg-accent/15 text-accent"
@@ -441,9 +445,9 @@ function EmptyHint({ text }: { text: string }) {
   );
 }
 
-// Case files ordering: in-progress before complete, then newest first.
-// InterviewSession has no created_at column, so the autoincrement id stands in
-// for creation order (it's monotonic with inserts).
+// Case files ordering: in-progress before complete, then newest first. The
+// autoincrement id is monotonic with inserts, so it orders by creation without
+// parsing created_at (which migrated rows share anyway).
 function OrderSessions(list: SessionSummary[]): SessionSummary[] {
   return [...list].sort((a, b) => {
     const aDone = a.status === "completed" ? 1 : 0;

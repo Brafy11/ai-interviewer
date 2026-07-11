@@ -41,6 +41,7 @@ export interface SessionSummary {
   question_count: number;
   resume_filename: string | null;
   job_title: string | null;
+  created_at: string; // ISO timestamp
 }
 
 export interface Turn {
@@ -61,6 +62,7 @@ export interface SessionState {
   role: Role | null;
   status: string;
   question_count: number;
+  created_at: string; // ISO timestamp
   gap_analysis: GapAnalysis;
   turns: Turn[];
   current_question: string | null;
@@ -78,6 +80,7 @@ export interface Report {
   summary: string;
   strengths: string[];
   gaps: string[];
+  created_at: string; // ISO timestamp — when the report was generated
 }
 
 // ---- Core request helper ----------------------------------------------------

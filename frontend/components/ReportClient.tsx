@@ -9,6 +9,7 @@ import { ReportSkeleton } from "@/components/Skeletons";
 import GapBoard from "@/components/GapBoard";
 import { GetReport, GetSession, MessageOf, type Report, type SessionState } from "@/lib/api";
 import { CoveredTargets } from "@/lib/gaps";
+import { FormatDate } from "@/lib/format";
 
 // Final assessment. Renders the exact report schema (overall_score, summary,
 // strengths, gaps) as an editorial verdict, keeping the palette's meanings:
@@ -90,7 +91,13 @@ function ReportBody({ report, session }: { report: Report; session: SessionState
 
   return (
     <article className="mt-10 animate-rise">
-      <p className="eyebrow text-primary">Final assessment</p>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1">
+        <p className="eyebrow !mb-0 text-primary">Final assessment</p>
+        <span className="text-xs font-semibold uppercase tracking-widest text-base-content/45">
+          {session && <>Interviewed {FormatDate(session.created_at)} · </>}
+          Report {FormatDate(report.created_at)}
+        </span>
+      </div>
       <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-1">
         <h1 className={`font-display text-6xl font-medium tracking-tight sm:text-7xl ${v.text}`}>
           {v.label}
