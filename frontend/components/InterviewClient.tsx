@@ -218,13 +218,12 @@ export default function InterviewClient() {
                     {answer.length > CHAR_LIMIT ? (
                       <span className="inline-flex items-center gap-1.5 font-semibold text-error" role="alert">
                         <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                        {answer.length - CHAR_LIMIT} characters over the {CHAR_LIMIT} limit —
-                        shorten your answer to submit
+                        Over the limit — {answer.length} / {CHAR_LIMIT} characters
                       </span>
                     ) : answer.length === CHAR_LIMIT ? (
                       <span className="inline-flex items-center gap-1.5 font-semibold text-warning" role="alert">
                         <TriangleAlert className="h-3.5 w-3.5 shrink-0" />
-                        You’ve reached the {CHAR_LIMIT}-character limit
+                        Limit reached — {answer.length} / {CHAR_LIMIT} characters
                       </span>
                     ) : (
                       <span>
