@@ -31,6 +31,10 @@ import {
 } from "@/lib/api";
 import { FormatDate } from "@/lib/format";
 
+// Mirrors MAX_UPLOAD_BYTES in backend/app/routes/resumes.py — checking here
+// gives instant feedback instead of a round trip to hit the same backend cap.
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
 const EXAMPLE_JD = `Caregiver (CNA / HHA / PCA / Home Health Aide) — Sigma HomeCare
 
 Location: Downriver Region, MI (in person)
@@ -94,6 +98,11 @@ export default function DashboardPage() {
 
   async function OnUpload(file: File) {
     setError(null);
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setError(`File is too large. The limit is ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB.`);
+      if (fileInput.current) fileInput.current.value = "";
+      return;
+    }
     setUploading(true);
     try {
       const created = await UploadResume(file);
@@ -228,7 +237,8 @@ export default function DashboardPage() {
                 )}
               </button>
               <p className="mt-3 text-center text-xs text-base-content/45">
-                PDF recommended — DOCX, TXT, and screenshots (PNG/JPG) work too.
+                PDF recommended — DOCX, TXT, and screenshots (PNG/JPG) work too. Max{" "}
+                {MAX_UPLOAD_BYTES / (1024 * 1024)} MB.
               </p>
             </section>
 

@@ -29,6 +29,7 @@ IMAGE_MEDIA_TYPES = {
     ".webp": "image/webp",
 }
 ACCEPTED = "a PDF (recommended), DOCX, TXT, or an image (PNG, JPG, WebP)"
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB — resumes are text; this is generous
 
 
 def _extract_pdf_text(data: bytes) -> str:
@@ -46,11 +47,17 @@ def _extract_docx_text(data: bytes) -> str:
 
 
 @router.post("")
-async def upload_resume(
-    file: UploadFile, session: Session = Depends(get_session)
-) -> dict:
+def upload_resume(file: UploadFile, session: Session = Depends(get_session)) -> dict:
+    # Sync def, not async: the vision transcription call below is a blocking
+    # Anthropic SDK call. A sync route runs on FastAPI's threadpool, so it
+    # can't freeze the event loop the way it would inside `async def`.
     suffix = PurePosixPath((file.filename or "").lower()).suffix
-    data = await file.read()
+    data = file.file.read(MAX_UPLOAD_BYTES + 1)
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File is too large. The limit is {MAX_UPLOAD_BYTES // (1024 * 1024)} MB.",
+        )
 
     if suffix in IMAGE_MEDIA_TYPES:
         # The one upload path that costs an AI call — errors here are the

@@ -19,7 +19,14 @@ import {
 } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import { InterviewSkeleton } from "@/components/Skeletons";
-import { GetSession, MessageOf, SubmitAnswer, type SessionState, type Turn } from "@/lib/api";
+import {
+  GetSession,
+  MessageOf,
+  SubmitAnswer,
+  type SessionState,
+  type SubmitAnswerResult,
+  type Turn,
+} from "@/lib/api";
 import { TargetLabel } from "@/lib/gaps";
 
 const MAX_QUESTIONS = 12;
@@ -82,10 +89,14 @@ export default function InterviewClient() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await SubmitAnswer(id, submitted);
+      const result = await SubmitAnswer(id, submitted);
       if (typeof window !== "undefined") window.localStorage.removeItem(`draft:${id}`);
       setAnswer("");
-      setState(await GetSession(id));
+      // Apply the write's own response instead of a second GetSession fetch:
+      // that second fetch could fail independently of a successful write and
+      // leave the UI showing the stale question, so a retry would silently
+      // answer the next question the user never saw.
+      setState((prev) => ApplyAnswer(prev, submitted, result));
     } catch (e) {
       setSubmitError(MessageOf(e));
     } finally {
@@ -445,6 +456,39 @@ function CompletePanel({ id }: { id: number }) {
       </Link>
     </div>
   );
+}
+
+// Fold a successful /answer response into local state: mark the pending turn
+// answered and, unless the interview is done, append the next turn the
+// response already carried — no second fetch needed.
+function ApplyAnswer(
+  prev: SessionState | null,
+  answer: string,
+  result: SubmitAnswerResult,
+): SessionState | null {
+  if (!prev) return prev;
+  const pendingIndex = prev.turns.findIndex((t) => t.answer === null);
+  if (pendingIndex === -1) return prev;
+
+  const turns = [...prev.turns];
+  turns[pendingIndex] = { ...turns[pendingIndex], answer };
+
+  if (!result.done && result.question !== undefined) {
+    turns.push({
+      turn_index: turns[pendingIndex].turn_index + 1,
+      question: result.question,
+      answer: null,
+      targets: result.targets ?? [],
+      is_followup: result.is_followup ?? false,
+    });
+  }
+
+  return {
+    ...prev,
+    status: result.done ? "completed" : prev.status,
+    question_count: result.question_count,
+    turns,
+  };
 }
 
 function CoversFor(

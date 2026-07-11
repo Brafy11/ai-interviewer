@@ -47,6 +47,16 @@ T = TypeVar("T", bound=BaseModel)
 _client = None
 
 
+class AgentError(Exception):
+    """An LLM call failed in a way the caller can't recover from in-process.
+
+    Every failure mode of call_structured (API error, no tool_use block, schema
+    mismatch surviving the retry) raises this one type, so routes never need to
+    know which. main.py maps it to a single clean HTTP response instead of a
+    raw 500 stack trace.
+    """
+
+
 def _is_mock() -> bool:
     # Mock is the default; only the explicit string "false" turns it off.
     return os.environ.get("AI_MOCK", "true").lower() != "false"
@@ -91,7 +101,7 @@ def _first_tool_use(response):
     for block in response.content:
         if block.type == "tool_use":
             return block
-    raise RuntimeError("Model did not return a tool_use block")
+    raise AgentError("Model did not return a tool_use block")
 
 
 def call_structured(
@@ -137,16 +147,21 @@ def call_structured(
         ]
     messages = [{"role": "user", "content": content}]
 
+    from anthropic import APIError
+
     last_error: ValidationError | None = None
     for _attempt in range(2):  # one initial call + one retry on validation failure
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=max_tokens,
-            system=system,
-            messages=messages,
-            tools=[tool],
-            tool_choice={"type": "tool", "name": "record_output"},
-        )
+        try:
+            response = client.messages.create(
+                model=MODEL,
+                max_tokens=max_tokens,
+                system=system,
+                messages=messages,
+                tools=[tool],
+                tool_choice={"type": "tool", "name": "record_output"},
+            )
+        except APIError as error:
+            raise AgentError(f"The AI service call failed: {error}") from error
         _log_cost(call_type, response.usage.input_tokens, response.usage.output_tokens)
         block = _first_tool_use(response)
         try:
@@ -172,4 +187,6 @@ def call_structured(
                 }
             )
 
-    raise last_error
+    raise AgentError(
+        f"The AI response didn't match the required schema after a retry: {last_error}"
+    ) from last_error
