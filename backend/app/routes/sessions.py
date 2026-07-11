@@ -7,6 +7,7 @@ point and resume from the current unanswered question.
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.agent.extraction import extract_job_profile, extract_resume_profile
@@ -77,6 +78,10 @@ def create_session(body: SessionIn, session: Session = Depends(get_session)) -> 
         job_profile = JobProfile.model_validate(jd.profile_json)
 
     gaps = analyze_gaps(resume_profile, job_profile)
+    # Ask the first question before committing anything: if this call fails,
+    # nothing below has been persisted, and the whole request rolls back
+    # instead of leaving a session with no turns that can never be answered.
+    first = next_turn(gaps, history=[], question_count=0)
 
     interview = InterviewSession(
         resume_id=resume.id,
@@ -86,11 +91,8 @@ def create_session(body: SessionIn, session: Session = Depends(get_session)) -> 
         question_count=1,
     )
     session.add(interview)
-    session.commit()
-    session.refresh(interview)
+    session.flush()  # assigns interview.id without committing, for the Turn's FK
 
-    # Ask the first question immediately and store it unanswered as turn 0.
-    first = next_turn(gaps, history=[], question_count=0)
     session.add(
         Turn(
             session_id=interview.id,
@@ -102,6 +104,7 @@ def create_session(body: SessionIn, session: Session = Depends(get_session)) -> 
         )
     )
     session.commit()
+    session.refresh(interview)
 
     return {
         "id": interview.id,
@@ -225,11 +228,24 @@ def submit_answer(
     )
     interview.question_count += 1
     session.add(interview)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        # Another request for this session already inserted this turn_index —
+        # a double-submit race (double-click, two tabs). Their answer and next
+        # question already won; ours rolls back instead of creating a second
+        # "current" question.
+        session.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="This answer was already submitted. Refresh to see the current question.",
+        )
 
     return {
         "done": False,
         "question": following.question,
+        "targets": following.targets,
+        "is_followup": following.is_followup,
         "question_count": interview.question_count,
     }
 
@@ -258,8 +274,19 @@ def get_report(session_id: int, session: Session = Depends(get_session)) -> dict
             gaps_json=generated.gaps,
         )
         session.add(report)
-        session.commit()
-        session.refresh(report)
+        try:
+            session.commit()
+        except IntegrityError:
+            # Another concurrent request for this session (two tabs, a
+            # double-fired effect) already generated and inserted the report
+            # first. Discard ours and use theirs, rather than persisting two
+            # divergent reports for the same interview.
+            session.rollback()
+            report = session.exec(
+                select(Report).where(Report.session_id == session_id)
+            ).one()
+        else:
+            session.refresh(report)
 
     return {
         "overall_score": report.overall_score,

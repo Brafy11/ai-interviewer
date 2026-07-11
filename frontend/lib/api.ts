@@ -75,6 +75,14 @@ export interface CreateSessionResult {
   question_count: number;
 }
 
+export interface SubmitAnswerResult {
+  done: boolean;
+  question?: string;
+  targets?: string[];
+  is_followup?: boolean;
+  question_count: number;
+}
+
 export interface Report {
   overall_score: number;
   summary: string;
@@ -153,10 +161,12 @@ export function GetSession(id: number): Promise<SessionState> {
   return Req(`/sessions/${id}`);
 }
 
-// The response body is ignored: after a write the UI re-fetches the session,
-// keeping the server as the single source of truth.
-export async function SubmitAnswer(id: number, answer: string): Promise<void> {
-  await Req(`/sessions/${id}/answer`, {
+// The response carries the next question (or completion), so the caller can
+// update local state directly instead of an extra GetSession round trip —
+// that second fetch used to be able to fail independently of the write and
+// leave the UI misattributing the next answer to the wrong question.
+export function SubmitAnswer(id: number, answer: string): Promise<SubmitAnswerResult> {
+  return Req(`/sessions/${id}/answer`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ answer }),

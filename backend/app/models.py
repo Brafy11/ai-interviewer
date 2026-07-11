@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlmodel import JSON, Column, Field, SQLModel
+from sqlmodel import JSON, Column, Field, SQLModel, UniqueConstraint
 
 # Table names default to the lowercased class name with no snake_casing:
 # InterviewSession -> "interviewsession", JobDescription -> "jobdescription".
@@ -34,6 +34,12 @@ class InterviewSession(SQLModel, table=True):
 
 
 class Turn(SQLModel, table=True):
+    # Guards the read-modify-write race in submit_answer: two concurrent
+    # requests both reading the same pending turn can no longer both insert
+    # the "next" turn_index — the second insert fails cleanly instead of
+    # silently creating two current questions.
+    __table_args__ = (UniqueConstraint("session_id", "turn_index", name="uq_turn_session_index"),)
+
     id: int | None = Field(default=None, primary_key=True)
     session_id: int = Field(foreign_key="interviewsession.id")
     turn_index: int
@@ -52,7 +58,9 @@ class Report(SQLModel, table=True):
     # A Report row is only inserted once generation succeeds, so all fields
     # are known at insert time and therefore required.
     id: int | None = Field(default=None, primary_key=True)
-    session_id: int = Field(foreign_key="interviewsession.id")
+    # unique=True: guards the check-then-insert race in get_report — only one
+    # of two concurrent "generate the report" requests can win the insert.
+    session_id: int = Field(foreign_key="interviewsession.id", unique=True)
     overall_score: int
     summary: str
     strengths_json: list = Field(sa_column=Column(JSON))
