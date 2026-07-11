@@ -35,6 +35,13 @@ import { FormatDate } from "@/lib/format";
 // gives instant feedback instead of a round trip to hit the same backend cap.
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
+// Mirrors IMAGE_MEDIA_TYPES + the pdf/docx/txt/md branches in resumes.py. The
+// <input accept> attribute only filters what the native file picker *shows* —
+// "All files" still lets an unsupported type through — so this is what
+// actually catches it before a network round trip.
+const ACCEPTED_EXTENSIONS = [".pdf", ".docx", ".txt", ".md", ".png", ".jpg", ".jpeg", ".webp"];
+const UPLOAD_HINT = `a PDF, DOCX, TXT, or an image (PNG, JPG, WebP), up to ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB`;
+
 const EXAMPLE_JD = `Caregiver (CNA / HHA / PCA / Home Health Aide) — Sigma HomeCare
 
 Location: Downriver Region, MI (in person)
@@ -75,6 +82,9 @@ export default function DashboardPage() {
   const [savingJd, setSavingJd] = useState(false);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Shown locally above the upload button rather than the page-top banner,
+  // since that banner is easy to miss once the user has scrolled to this card.
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -97,19 +107,28 @@ export default function DashboardPage() {
   }
 
   async function OnUpload(file: File) {
-    setError(null);
-    if (file.size > MAX_UPLOAD_BYTES) {
-      setError(`File is too large. The limit is ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB.`);
+    setUploadError(null);
+
+    const dotIndex = file.name.lastIndexOf(".");
+    const extension = dotIndex === -1 ? "" : file.name.slice(dotIndex).toLowerCase();
+    if (!ACCEPTED_EXTENSIONS.includes(extension)) {
+      setUploadError(`Unsupported file type. Please try again with ${UPLOAD_HINT}.`);
       if (fileInput.current) fileInput.current.value = "";
       return;
     }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setUploadError(`File is too large. Please try again with ${UPLOAD_HINT}.`);
+      if (fileInput.current) fileInput.current.value = "";
+      return;
+    }
+
     setUploading(true);
     try {
       const created = await UploadResume(file);
       setResumes((prev) => [...prev, created]);
       setResumeId(created.id);
     } catch (e) {
-      setError(MessageOf(e));
+      setUploadError(`${MessageOf(e)} Please try again with ${UPLOAD_HINT}.`);
     } finally {
       setUploading(false);
       if (fileInput.current) fileInput.current.value = "";
@@ -210,6 +229,12 @@ export default function DashboardPage() {
                 ))}
                 {resumes.length === 0 && <EmptyHint text="No résumés yet — upload one to begin." />}
               </div>
+              {uploadError && (
+                <div className="mt-4 flex items-start gap-2.5 rounded-box border border-error/70 bg-error/10 px-4 py-3 text-sm text-error">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{uploadError}</span>
+                </div>
+              )}
               <input
                 ref={fileInput}
                 type="file"
