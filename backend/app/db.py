@@ -17,6 +17,30 @@ def create_db_and_tables() -> None:
     # Only tables whose module has been imported are registered in
     # SQLModel.metadata — callers must import app.models first.
     SQLModel.metadata.create_all(engine)
+    _migrate_existing_tables()
+
+
+def _migrate_existing_tables() -> None:
+    # create_all only creates missing tables; columns added to a table that
+    # already exists in the DB file need an explicit ALTER. Ad-hoc checks are
+    # enough at this scale — reach for Alembic if these start piling up.
+    with engine.connect() as conn:
+        for table in ("interviewsession", "report"):
+            columns = {
+                row[1]
+                for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")
+            }
+            if "created_at" not in columns:
+                conn.exec_driver_sql(
+                    f"ALTER TABLE {table} ADD COLUMN created_at DATETIME"
+                )
+                # Rows that predate the column get the migration time — their
+                # true creation time is unrecoverable, and the model requires
+                # a value.
+                conn.exec_driver_sql(
+                    f"UPDATE {table} SET created_at = CURRENT_TIMESTAMP"
+                )
+        conn.commit()
 
 
 def get_session() -> Generator[Session, None, None]:

@@ -126,6 +126,7 @@ def list_sessions(session: Session = Depends(get_session)) -> list[dict]:
                 "question_count": interview.question_count,
                 "resume_filename": resume.filename if resume else None,
                 "job_title": job_title,
+                "created_at": interview.created_at,
             }
         )
     return result
@@ -163,6 +164,7 @@ def get_session_state(
         "role": role,
         "status": interview.status,
         "question_count": interview.question_count,
+        "created_at": interview.created_at,
         "gap_analysis": interview.gap_analysis_json,
         "turns": [
             {
@@ -264,4 +266,5 @@ def get_report(session_id: int, session: Session = Depends(get_session)) -> dict
         "summary": report.summary,
         "strengths": report.strengths_json,
         "gaps": report.gaps_json,
+        "created_at": report.created_at,
     }
