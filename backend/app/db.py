@@ -1,8 +1,14 @@
+import os
 from collections.abc import Generator
 
 from sqlmodel import Session, SQLModel, create_engine
 
-DATABASE_URL = "sqlite:///./interviewer.db"
+# DATA_DIR defaults to "." (unchanged local-dev behavior: ./interviewer.db).
+# The Docker image sets DATA_DIR=/app/data so the DB file lands in a directory
+# a reviewer can mount a volume onto (-v ./data:/app/data) to persist it
+# across `docker run`s, without mounting over the app code itself.
+DATA_DIR = os.environ.get("DATA_DIR", ".")
+DATABASE_URL = f"sqlite:///{DATA_DIR}/interviewer.db"
 
 engine = create_engine(
     DATABASE_URL,

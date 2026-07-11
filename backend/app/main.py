@@ -1,9 +1,10 @@
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from app import models  # noqa: F401 — registers tables with SQLModel.metadata
 from app.agent.client import AgentError
@@ -40,3 +41,25 @@ def handle_agent_error(request: Request, exc: AgentError) -> JSONResponse:
 @app.get("/api/health")
 def health() -> dict:
     return {"status": "ok", "ai_mock": os.environ.get("AI_MOCK", "true")}
+
+
+# The Next.js static export (frontend/out) is copied here as app/static during
+# the Docker build (see Dockerfile). It doesn't exist in local dev, where the
+# Next dev server on :3000 serves the frontend instead.
+STATIC_DIR = Path(__file__).parent / "static"
+
+
+@app.get("/{full_path:path}")
+def serve_frontend(full_path: str) -> FileResponse:
+    # Registered after the routers above, so /api/* always matches those first.
+    # `next build` with output: "export" produces flat files (index.html,
+    # interview.html, report.html) rather than per-route directories, so a
+    # request for "/interview" needs the ".html" appended by hand. Starlette's
+    # StaticFiles(html=True) only resolves directory index.html, not this shape.
+    candidate = STATIC_DIR / full_path
+    if candidate.is_file():
+        return FileResponse(candidate)
+    html_candidate = STATIC_DIR / f"{full_path}.html"
+    if html_candidate.is_file():
+        return FileResponse(html_candidate)
+    return FileResponse(STATIC_DIR / "index.html")
