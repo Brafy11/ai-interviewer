@@ -138,8 +138,29 @@ def get_session_state(
     interview = _get_session_or_404(session, session_id)
     turns = _ordered_turns(session, session_id)
     current = next((t for t in turns if t.answer is None), None)
+
+    # Surface the candidate name and role facts the extraction already produced,
+    # so the interview header can show them — no new AI call, just cached fields.
+    resume = session.get(Resume, interview.resume_id)
+    jd = session.get(JobDescription, interview.jd_id)
+    candidate_name = (
+        (resume.profile_json or {}).get("name") if resume and resume.profile_json else None
+    )
+    job_profile = jd.profile_json if jd and jd.profile_json else None
+    role = (
+        {
+            "title": job_profile.get("title"),
+            "location": job_profile.get("location"),
+            "shift": job_profile.get("shift"),
+        }
+        if job_profile
+        else None
+    )
+
     return {
         "id": interview.id,
+        "candidate_name": candidate_name,
+        "role": role,
         "status": interview.status,
         "question_count": interview.question_count,
         "gap_analysis": interview.gap_analysis_json,
