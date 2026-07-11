@@ -189,7 +189,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-12 pt-[clamp(44px,6vw,100px)] lg:grid-cols-[minmax(0,1fr)_minmax(440px,0.82fr)] lg:items-center lg:gap-[clamp(48px,7vw,112px)]">
+        <div className="grid grid-cols-1 gap-12 pt-[clamp(22px,3vw,50px)] lg:grid-cols-[minmax(0,1fr)_minmax(440px,0.82fr)] lg:items-start lg:gap-[clamp(48px,7vw,112px)]">
           {/* Left column: Hero + Resume card */}
           <div className="max-w-[670px]">
             {/* Hero */}
@@ -266,6 +266,106 @@ export default function DashboardPage() {
                 {MAX_UPLOAD_BYTES / (1024 * 1024)} MB.
               </p>
             </section>
+          </div>
+
+          {/* Right column: JD card + Begin, grouped together */}
+          <div>
+            <section className="rounded-xl border border-base-300 bg-base-100/80 p-[clamp(28px,3vw,42px)] shadow-soft backdrop-blur-xl">
+              <div className="mb-6 flex items-start justify-between gap-5">
+                <div className="flex items-center gap-4">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-secondary text-secondary-content">
+                    <BriefcaseBusiness className="h-6 w-6" strokeWidth={2} />
+                  </span>
+                  <div>
+                    <p className="eyebrow text-primary">The role</p>
+                    <h2 className="font-display text-[clamp(1.7rem,2.5vw,2.35rem)] font-medium leading-[1.08] text-base-content">
+                      Prepare the interview
+                    </h2>
+                  </div>
+                </div>
+                <span className="font-display text-[1.65rem] text-base-content/45" aria-label="Step 2">
+                  02
+                </span>
+              </div>
+              <div className="space-y-2">
+                {jds.map((j) => (
+                  <SelectRow
+                    key={j.id}
+                    selected={jdId === j.id}
+                    onClick={() => setJdId(j.id)}
+                    primary={j.preview || `Job description #${j.id}`}
+                  />
+                ))}
+                {jds.length === 0 && <EmptyHint text="No roles yet — paste one below." />}
+              </div>
+              <label
+                htmlFor="jd-input"
+                className="mt-6 flex items-center justify-between text-[0.82rem] font-bold text-base-content"
+              >
+                Job description
+                <span className="text-[0.72rem] font-bold text-primary">Required</span>
+              </label>
+              <textarea
+                id="jd-input"
+                className="mt-2 min-h-[285px] w-full resize-y rounded-field border border-base-300 bg-base-100/65 px-[18px] py-4 text-[0.88rem] leading-[1.55] text-base-content transition-[border-color,background,box-shadow] duration-150 placeholder:text-base-content/40 focus:border-secondary focus:bg-base-100 focus:outline-none focus:ring-4 focus:ring-secondary/10"
+                placeholder="Paste the job posting…"
+                value={jdText}
+                onChange={(e) => setJdText(e.target.value)}
+              />
+              <div className="mt-2 flex items-center justify-between text-[0.72rem] text-base-content/70">
+                <span>{jdWords} words</span>
+              </div>
+              <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-[0.75fr_1.25fr]">
+                <button
+                  type="button"
+                  className="btn btn-outline uppercase tracking-[0.12em]"
+                  onClick={() => setJdText(EXAMPLE_JD)}
+                >
+                  Use example
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary uppercase tracking-[0.12em]"
+                  onClick={() => void OnSaveJd()}
+                  disabled={savingJd || jdText.trim().length === 0}
+                >
+                  {savingJd ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Saving…
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4" /> Save role
+                    </>
+                  )}
+                </button>
+              </div>
+            </section>
+
+            {/* Begin */}
+            <div className="mt-8 flex flex-col items-start gap-5 rounded-box border border-secondary/70 bg-secondary/10 p-8 sm:flex-row sm:items-center sm:justify-between">
+              <p className="max-w-md text-base leading-relaxed text-base-content/80">
+                {canBegin || starting
+                  ? "Both picked. The assistant reads them against each other and surfaces the gaps."
+                  : "Pick a résumé and a role to begin."}
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary btn-lg w-full shrink-0 uppercase tracking-widest sm:w-auto"
+                onClick={() => void OnBegin()}
+                disabled={!canBegin}
+              >
+                {starting ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" /> Reading both sides…
+                  </>
+                ) : (
+                  <>
+                    Begin assessment <ArrowRight className="h-5 w-5" />
+                  </>
+                )}
+              </button>
+            </div>
 
             {/* Trust line */}
             <p className="mt-5 flex items-center gap-2 text-[0.82rem] font-semibold text-secondary">
@@ -273,104 +373,6 @@ export default function DashboardPage() {
               AI organizes the evidence. A person makes the decision.
             </p>
           </div>
-
-          {/* Right column: JD card — reference "setup-card" treatment */}
-          <section className="rounded-xl border border-base-300 bg-base-100/80 p-[clamp(28px,3vw,42px)] shadow-soft backdrop-blur-xl">
-            <div className="mb-6 flex items-start justify-between gap-5">
-              <div className="flex items-center gap-4">
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-secondary text-secondary-content">
-                  <BriefcaseBusiness className="h-6 w-6" strokeWidth={2} />
-                </span>
-                <div>
-                  <p className="eyebrow text-primary">The role</p>
-                  <h2 className="font-display text-[clamp(1.7rem,2.5vw,2.35rem)] font-medium leading-[1.08] text-base-content">
-                    Prepare the interview
-                  </h2>
-                </div>
-              </div>
-              <span className="font-display text-[1.65rem] text-base-content/45" aria-label="Step 2">
-                02
-              </span>
-            </div>
-            <div className="space-y-2">
-              {jds.map((j) => (
-                <SelectRow
-                  key={j.id}
-                  selected={jdId === j.id}
-                  onClick={() => setJdId(j.id)}
-                  primary={j.preview || `Job description #${j.id}`}
-                />
-              ))}
-              {jds.length === 0 && <EmptyHint text="No roles yet — paste one below." />}
-            </div>
-            <label
-              htmlFor="jd-input"
-              className="mt-6 flex items-center justify-between text-[0.82rem] font-bold text-base-content"
-            >
-              Job description
-              <span className="text-[0.72rem] font-bold text-primary">Required</span>
-            </label>
-            <textarea
-              id="jd-input"
-              className="mt-2 min-h-[285px] w-full resize-y rounded-field border border-base-300 bg-base-100/65 px-[18px] py-4 text-[0.88rem] leading-[1.55] text-base-content transition-[border-color,background,box-shadow] duration-150 placeholder:text-base-content/40 focus:border-secondary focus:bg-base-100 focus:outline-none focus:ring-4 focus:ring-secondary/10"
-              placeholder="Paste the job posting…"
-              value={jdText}
-              onChange={(e) => setJdText(e.target.value)}
-            />
-            <div className="mt-2 flex items-center justify-between text-[0.72rem] text-base-content/70">
-              <span>{jdWords} words</span>
-            </div>
-            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-[0.75fr_1.25fr]">
-              <button
-                type="button"
-                className="btn btn-outline uppercase tracking-[0.12em]"
-                onClick={() => setJdText(EXAMPLE_JD)}
-              >
-                Use example
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary uppercase tracking-[0.12em]"
-                onClick={() => void OnSaveJd()}
-                disabled={savingJd || jdText.trim().length === 0}
-              >
-                {savingJd ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Saving…
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4" /> Save role
-                  </>
-                )}
-              </button>
-            </div>
-          </section>
-        </div>
-
-        {/* Begin */}
-        <div className="mt-8 flex flex-col items-start gap-5 rounded-box border border-secondary/70 bg-secondary/10 p-8 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-md text-base leading-relaxed text-base-content/80">
-            {canBegin || starting
-              ? "Both picked. The assistant reads them against each other and surfaces the gaps."
-              : "Pick a résumé and a role to begin."}
-          </p>
-          <button
-            type="button"
-            className="btn btn-primary btn-lg w-full shrink-0 uppercase tracking-widest sm:w-auto"
-            onClick={() => void OnBegin()}
-            disabled={!canBegin}
-          >
-            {starting ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" /> Reading both sides…
-              </>
-            ) : (
-              <>
-                Begin assessment <ArrowRight className="h-5 w-5" />
-              </>
-            )}
-          </button>
         </div>
 
         {/* Case files */}
