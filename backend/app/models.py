@@ -30,6 +30,7 @@ class InterviewSession(SQLModel, table=True):
     gap_analysis_json: dict | None = Field(default=None, sa_column=Column(JSON))
     status: str = Field(default="pending")  # "pending" | "in_progress" | "completed"
     question_count: int = Field(default=0)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Turn(SQLModel, table=True):
@@ -56,6 +57,7 @@ class Report(SQLModel, table=True):
     summary: str
     strengths_json: list = Field(sa_column=Column(JSON))
     gaps_json: list = Field(sa_column=Column(JSON))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ApiUsage(SQLModel, table=True):
