@@ -101,12 +101,14 @@ def call_structured(
     schema: type[T],
     max_tokens: int,
     mock_name: str | None = None,
+    image: tuple[str, str] | None = None,
 ) -> T:
     """Return a validated instance of `schema`, from a fixture or a real API call.
 
     `mock_name` overrides which fixture file is read in mock mode (used by the
     interviewer to return a different scripted turn each call); it is ignored in
-    real mode.
+    real mode. `image` is an optional (media_type, base64 data) pair sent ahead
+    of the text prompt — used by the resume image transcription.
     """
     if _is_mock():
         fixture = MOCKS_DIR / f"{mock_name or call_type}.json"
@@ -122,7 +124,18 @@ def call_structured(
         "description": "Record the result in the required structure.",
         "input_schema": schema.model_json_schema(),
     }
-    messages = [{"role": "user", "content": user_prompt}]
+    if image is None:
+        content = user_prompt
+    else:
+        media_type, image_b64 = image
+        content = [
+            {
+                "type": "image",
+                "source": {"type": "base64", "media_type": media_type, "data": image_b64},
+            },
+            {"type": "text", "text": user_prompt},
+        ]
+    messages = [{"role": "user", "content": content}]
 
     last_error: ValidationError | None = None
     for _attempt in range(2):  # one initial call + one retry on validation failure

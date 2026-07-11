@@ -31,6 +31,12 @@ class ResumeProfile(BaseModel):
     other_relevant: list[str] = []
 
 
+class ResumeTranscription(BaseModel):
+    # Vision transcription of a resume image (screenshot/photo) into plain
+    # text, which then feeds the same extraction pipeline as the text formats.
+    text: str
+
+
 class JobProfile(BaseModel):
     title: str
     organization: str

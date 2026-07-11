@@ -1,7 +1,11 @@
-"""Extraction calls: resume text -> ResumeProfile, JD text -> JobProfile."""
+"""Extraction calls: resume text -> ResumeProfile, JD text -> JobProfile.
+
+Also hosts the one vision call: transcribing a resume *image* (screenshot or
+photo) to plain text, so image uploads feed the exact same text pipeline.
+"""
 
 from app.agent.client import call_structured
-from app.schemas import JobProfile, ResumeProfile
+from app.schemas import JobProfile, ResumeProfile, ResumeTranscription
 
 _HALLUCINATION_RULE = (
     "Use only information present in the text. Do not infer, guess, or invent. "
@@ -20,6 +24,27 @@ JD_SYSTEM = (
     + "\nPut genuine disqualifiers (age, license, required tests/certifications, "
     "background checks) in hard_requirements."
 )
+
+
+TRANSCRIPTION_SYSTEM = (
+    "You transcribe an image of a resume (a screenshot, photo, or scan) into "
+    "plain text.\n"
+    + _HALLUCINATION_RULE
+    + "\nTranscribe every piece of text you can read, preserving the reading "
+    "order. If a word is illegible, write [illegible] instead of guessing."
+)
+
+
+def transcribe_resume_image(image_b64: str, media_type: str) -> str:
+    result = call_structured(
+        call_type="transcription_resume",
+        system=TRANSCRIPTION_SYSTEM,
+        user_prompt="Transcribe this resume image into plain text.",
+        schema=ResumeTranscription,
+        max_tokens=3000,
+        image=(media_type, image_b64),
+    )
+    return result.text
 
 
 def extract_resume_profile(raw_text: str) -> ResumeProfile:

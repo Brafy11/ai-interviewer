@@ -203,7 +203,7 @@ export default function DashboardPage() {
               <input
                 ref={fileInput}
                 type="file"
-                accept="application/pdf"
+                accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.webp"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -222,10 +222,13 @@ export default function DashboardPage() {
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4" /> Upload a PDF résumé
+                    <Upload className="h-4 w-4" /> Upload a résumé
                   </>
                 )}
               </button>
+              <p className="mt-3 text-center text-xs text-base-content/45">
+                PDF recommended — DOCX, TXT, and screenshots (PNG/JPG) work too.
+              </p>
             </section>
 
             {/* Trust line */}

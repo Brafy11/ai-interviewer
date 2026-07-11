@@ -11,4 +11,5 @@ dependencies = [
     "pypdf",
     "python-dotenv",
     "python-multipart>=0.0.32",
+    "python-docx>=1.2.0",
 ]
