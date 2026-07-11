@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, CircleCheck, TriangleAlert, Loader2, RotateCcw, Sparkles } from "lucide-react";
+import { ArrowLeft, CircleCheck, TriangleAlert, RotateCcw, Sparkles } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
+import { ReportSkeleton } from "@/components/Skeletons";
 import GapBoard from "@/components/GapBoard";
 import { GetReport, GetSession, MessageOf, type Report, type SessionState } from "@/lib/api";
 import { CoveredTargets } from "@/lib/gaps";
@@ -59,11 +60,7 @@ export default function ReportClient() {
           <ArrowLeft className="h-3.5 w-3.5" /> Dashboard
         </Link>
 
-        {loading && (
-          <div className="mt-28 flex items-center justify-center gap-2 text-sm text-base-content/70">
-            <Loader2 className="h-4 w-4 animate-spin" /> Scoring the interview…
-          </div>
-        )}
+        {loading && <ReportSkeleton status="Scoring the interview…" />}
 
         {error && !loading && (
           <div className="mx-auto mt-20 max-w-md text-center">

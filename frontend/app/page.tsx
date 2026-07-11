@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteHeader from "@/components/SiteHeader";
+import { InterviewSkeleton } from "@/components/Skeletons";
 import {
   ArrowRight,
   Upload,
@@ -29,21 +30,31 @@ import {
   type SessionSummary,
 } from "@/lib/api";
 
-const EXAMPLE_JD = `Caregiver — Sigma HomeCare (Austin, TX)
+const EXAMPLE_JD = `Caregiver (CNA / HHA / PCA / Home Health Aide) — Sigma HomeCare
 
-We're hiring compassionate in-home caregivers to support elderly and disabled clients with daily living.
+Location: Downriver Region, MI (in person)
+Shift: 12:00 PM-6:00 PM
+Pay: $16.00-$18.40 per hour, weekly pay
 
-Shift: Includes weekend and evening shifts.
+Sigma HomeCare provides one-on-one care for seniors and adults with disabilities, helping clients remain safe, comfortable, and independent in their own homes.
 
-Required qualifications:
-- At least 1 year of caregiving experience
-- Current CPR and First Aid certification
-- Valid driver's license and reliable transportation
-- Negative TB test within the last 12 months
-- Able to assist with activities of daily living and provide mobility/transfer assistance
+Responsibilities:
+- Assist clients with personal care, grooming, and hygiene
+- Provide companionship and emotional support
+- Help with meal preparation and light housekeeping
+- Assist with mobility and daily activities
+- Provide medication reminders
+- Accompany clients to appointments and errands as needed
+- Maintain accurate care documentation
 
-Preferred:
-- Bilingual (English/Spanish)`;
+Qualifications:
+- Must be 18 years of age or older
+- High school diploma or GED
+- Valid driver's license or state-issued ID, and reliable transportation
+- Smartphone with GPS capability
+- Current TB test, or willingness to obtain one
+- Compassionate, dependable, and professional attitude
+- Previous caregiving experience preferred but not required`;
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -126,6 +137,16 @@ export default function DashboardPage() {
   const canBegin = resumeId !== null && jdId !== null && !starting;
   const orderedSessions = OrderSessions(sessions);
   const jdWords = jdText.trim() ? jdText.trim().split(/\s+/).length : 0;
+
+  // While the backend reads both documents and writes the first question, show
+  // the interview page's ghost so the content resolves in place after redirect.
+  if (starting)
+    return (
+      <div className="min-h-screen">
+        <SiteHeader sectionLabel="Candidate Interview" />
+        <InterviewSkeleton status="Reading the résumé against the role…" />
+      </div>
+    );
 
   return (
     <div className="min-h-screen">

@@ -68,9 +68,12 @@ class InterviewTurn(BaseModel):
     question: str
     targets: list[str] = []  # ids like "weak_or_missing:2"; convention set in Phase 2
     is_followup: bool
-    reasoning: str
     should_end: bool
-    coverage_notes: str
+    # Internal bookkeeping fields, never shown to the candidate. Defaulted so a
+    # truncated tool call missing them degrades gracefully instead of 500ing the
+    # answer endpoint (Phase 5 finding: real outputs dropped coverage_notes).
+    reasoning: str = ""
+    coverage_notes: str = ""
 
 
 class FinalReport(BaseModel):

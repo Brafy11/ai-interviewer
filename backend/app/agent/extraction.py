@@ -28,7 +28,7 @@ def extract_resume_profile(raw_text: str) -> ResumeProfile:
         system=RESUME_SYSTEM,
         user_prompt=f"Resume text:\n\n{raw_text}",
         schema=ResumeProfile,
-        max_tokens=1500,
+        max_tokens=3000,
     )
 
 
@@ -38,5 +38,5 @@ def extract_job_profile(raw_text: str) -> JobProfile:
         system=JD_SYSTEM,
         user_prompt=f"Job description text:\n\n{raw_text}",
         schema=JobProfile,
-        max_tokens=1500,
+        max_tokens=3000,
     )

@@ -17,6 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
+import { InterviewSkeleton } from "@/components/Skeletons";
 import { GetSession, MessageOf, SubmitAnswer, type SessionState, type Turn } from "@/lib/api";
 import { TargetLabel } from "@/lib/gaps";
 
@@ -93,9 +94,7 @@ export default function InterviewClient() {
     return (
       <div className="min-h-screen">
         <SiteHeader sectionLabel="Candidate Interview" />
-        <div className="mx-auto mt-28 flex max-w-md items-center justify-center gap-2 text-sm text-base-content/70">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading interview…
-        </div>
+        <InterviewSkeleton status="Loading the interview…" />
       </div>
     );
   if (loadError || !state)
@@ -120,12 +119,10 @@ export default function InterviewClient() {
   const candidate = state.candidate_name?.trim() || "Candidate";
   const roleTitle = state.role?.title || "Candidate interview";
 
-  // Question number counts real questions; follow-ups are called out separately.
+  // Every turn gets a number — follow-ups count against the same 12-question
+  // budget as any other turn, so the index must agree with the header's cap.
   const label = pending
-    ? {
-        followup: pending.is_followup,
-        n: turns.filter((t) => !t.is_followup && t.turn_index <= pending.turn_index).length,
-      }
+    ? { followup: pending.is_followup, n: pending.turn_index + 1 }
     : { followup: false, n: 0 };
 
   const topic = pending ? CoversFor(gap, pending) : "";
@@ -142,13 +139,15 @@ export default function InterviewClient() {
         </Link>
       </div>
 
+      {isComplete ? (
+        <div className="flex min-h-[70vh] w-full items-center justify-center px-8 pb-24">
+          <CompletePanel id={id} />
+        </div>
+      ) : (
       <div className="grid w-full gap-16 px-8 pb-24 lg:grid-cols-[1fr_360px] lg:gap-10">
         {/* Answering column */}
         <section className="min-w-0 py-6">
-          {isComplete ? (
-            <CompletePanel id={id} />
-          ) : (
-            pending && (
+          {pending && (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <p className="eyebrow text-primary">{roleTitle}</p>
@@ -170,13 +169,13 @@ export default function InterviewClient() {
                   )}
                 </div>
                 <p className="mt-1 text-sm text-base-content/70">
-                  {answeredCount} responses saved · adaptive interview, up to {MAX_QUESTIONS}{" "}
-                  questions
+                  {answeredCount} {answeredCount === 1 ? "response" : "responses"} saved ·
+                  adaptive interview, up to {MAX_QUESTIONS} questions
                 </p>
 
                 <div className="mt-10 border-t border-base-300 pt-8">
                   <h1 className="font-display text-[2.7rem] font-medium tracking-tight text-base-content sm:text-[3.4rem]">
-                    {label.followup ? "Follow-up" : `Question ${label.n}`}
+                    Question {label.n}
                   </h1>
                   <div className="mb-3 mt-4 flex flex-wrap items-center gap-2.5">
                     {topic && <span className="eyebrow text-primary">{topic}</span>}
@@ -240,7 +239,6 @@ export default function InterviewClient() {
                   </button>
                 </div>
               </>
-            )
           )}
         </section>
 
@@ -274,6 +272,7 @@ export default function InterviewClient() {
           </div>
         </aside>
       </div>
+      )}
     </div>
   );
 }
@@ -319,7 +318,7 @@ function CandidateChip({ name }: { name: string }) {
 
 function CompletePanel({ id }: { id: number }) {
   return (
-    <div className="rounded-box border border-secondary/70 bg-secondary/10 p-10 text-center">
+    <div className="w-full max-w-xl rounded-box border border-secondary/70 bg-secondary/10 p-10 text-center">
       <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-secondary/70 bg-base-100">
         <CircleCheck className="h-6 w-6 text-secondary" strokeWidth={1.75} />
       </span>

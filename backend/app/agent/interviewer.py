@@ -25,7 +25,10 @@ INTERVIEW_SYSTEM = (
     "- If the candidate's most recent answer was vague, generic, or evasive, set "
     "is_followup to true and ask one clarifying follow-up on the same gap. Ask at most "
     "one follow-up per gap.\n"
-    "- Set should_end to true only once the important gaps have been covered.\n"
+    "- End the interview promptly: once every weak_or_missing item and every "
+    "claims_to_verify item has received a clear, non-vague answer, set should_end to "
+    "true. Do not ask extra questions about requirements the gap analysis already "
+    "marks as strong matches, and do not re-ask a gap that has been answered.\n"
     "- `reasoning` is one internal sentence and is never shown to the candidate.\n"
     "- `coverage_notes` is a short running summary of what has been covered so far."
 )
@@ -55,7 +58,7 @@ def next_turn(
         system=INTERVIEW_SYSTEM,
         user_prompt=user_prompt,
         schema=InterviewTurn,
-        max_tokens=400,
+        max_tokens=1500,
         # In mock mode this selects the scripted turn for the current position;
         # ignored in real mode.
         mock_name=f"interview_turn_{len(history)}",

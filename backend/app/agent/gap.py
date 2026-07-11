@@ -29,5 +29,5 @@ def analyze_gaps(resume: ResumeProfile, job: JobProfile) -> GapAnalysis:
         system=GAP_SYSTEM,
         user_prompt=user_prompt,
         schema=GapAnalysis,
-        max_tokens=1200,
+        max_tokens=3000,
     )

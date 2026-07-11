@@ -27,5 +27,5 @@ def generate_report(gap_analysis: GapAnalysis, history: list[dict]) -> FinalRepo
         system=REPORT_SYSTEM,
         user_prompt=user_prompt,
         schema=FinalReport,
-        max_tokens=2000,
+        max_tokens=3000,
     )
