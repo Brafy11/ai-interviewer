@@ -15,6 +15,7 @@ import {
   HelpCircle,
   CornerDownRight,
   AlertCircle,
+  TriangleAlert,
 } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import { InterviewSkeleton } from "@/components/Skeletons";
@@ -22,6 +23,8 @@ import { GetSession, MessageOf, SubmitAnswer, type SessionState, type Turn } fro
 import { TargetLabel } from "@/lib/gaps";
 
 const MAX_QUESTIONS = 12;
+// Soft limit: typing past it is allowed so nothing is silently swallowed, but
+// submission is blocked until the answer is back under it.
 const CHAR_LIMIT = 1000;
 
 // The candidate answering view — one focused question at a time, matching the
@@ -74,7 +77,7 @@ export default function InterviewClient() {
   }
 
   async function OnSubmit() {
-    if (!state || !answer.trim() || submitting) return;
+    if (!state || !answer.trim() || answer.length > CHAR_LIMIT || submitting) return;
     const submitted = answer.trim();
     setSubmitting(true);
     setSubmitError(null);
@@ -192,25 +195,42 @@ export default function InterviewClient() {
 
                 <div className="mt-8">
                   <textarea
-                    className="w-full rounded-box border border-base-300 bg-base-100 px-5 py-4 text-[1.05rem] leading-relaxed text-base-content shadow-card placeholder:text-base-content/40 focus:border-primary focus:outline-none"
+                    className={`w-full rounded-box border bg-base-100 px-5 py-4 text-[1.05rem] leading-relaxed text-base-content shadow-card placeholder:text-base-content/40 focus:outline-none ${
+                      answer.length > CHAR_LIMIT
+                        ? "border-error focus:border-error"
+                        : "border-base-300 focus:border-primary"
+                    }`}
                     rows={7}
-                    maxLength={CHAR_LIMIT}
                     placeholder="Type your answer here…"
                     value={answer}
                     disabled={submitting}
+                    aria-invalid={answer.length > CHAR_LIMIT}
                     onChange={(e) => OnAnswerChange(e.target.value)}
                     onKeyDown={(e) => {
                       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") void OnSubmit();
                     }}
                   />
-                  <div className="mt-2 flex items-center justify-between text-xs text-base-content/70">
+                  <div className="mt-2 flex items-center justify-between gap-4 text-xs text-base-content/70">
                     <span className="inline-flex items-center gap-1.5">
                       <Bookmark className="h-3.5 w-3.5" />
                       {answer ? "Draft saved on this device" : "⌘↵ to submit"}
                     </span>
-                    <span>
-                      {answer.length} / {CHAR_LIMIT} characters
-                    </span>
+                    {answer.length > CHAR_LIMIT ? (
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-error" role="alert">
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                        {answer.length - CHAR_LIMIT} characters over the {CHAR_LIMIT} limit —
+                        shorten your answer to submit
+                      </span>
+                    ) : answer.length === CHAR_LIMIT ? (
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-warning" role="alert">
+                        <TriangleAlert className="h-3.5 w-3.5 shrink-0" />
+                        You’ve reached the {CHAR_LIMIT}-character limit
+                      </span>
+                    ) : (
+                      <span>
+                        {answer.length} / {CHAR_LIMIT} characters
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -225,7 +245,9 @@ export default function InterviewClient() {
                   <button
                     className="btn btn-primary uppercase tracking-widest"
                     onClick={() => void OnSubmit()}
-                    disabled={submitting || answer.trim().length === 0}
+                    disabled={
+                      submitting || answer.trim().length === 0 || answer.length > CHAR_LIMIT
+                    }
                   >
                     {submitting ? (
                       <>
@@ -240,6 +262,8 @@ export default function InterviewClient() {
                 </div>
               </>
           )}
+
+          <ResponseTrail gap={gap} turns={turns} />
         </section>
 
         {/* Candidate-facing info rail — the internal gap analysis is not shown here. */}
@@ -249,7 +273,8 @@ export default function InterviewClient() {
               medallion={<CircleCheck className="h-4 w-4 text-secondary" strokeWidth={2} />}
               title="Responses saved"
             >
-              Submitted answers are saved with this assessment.
+              Submitted answers are saved with this assessment and shown below the
+              current question. They can’t be edited after you submit.
             </InfoItem>
             <div className="border-t border-base-300" />
             <InfoItem
@@ -274,6 +299,95 @@ export default function InterviewClient() {
       </div>
       )}
     </div>
+  );
+}
+
+// Read-only trail of answered turns, newest first, rendered beneath the live
+// question. Deliberately recessive: small serif questions, muted ink, clamped
+// answers — the current question keeps all the visual weight.
+function ResponseTrail({
+  gap,
+  turns,
+}: {
+  gap: SessionState["gap_analysis"];
+  turns: Turn[];
+}) {
+  const answered = turns.filter((t) => t.answer !== null).reverse();
+  if (answered.length === 0) return null;
+  return (
+    <div className="mt-16 border-t border-base-300 pt-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="eyebrow">
+          Your responses · {answered.length}
+        </p>
+        <p className="text-xs text-base-content/50">Newest first · read-only</p>
+      </div>
+      <ol className="mt-1 divide-y divide-base-300">
+        {answered.map((t, i) => (
+          <PastTurn key={t.turn_index} turn={t} topic={CoversFor(gap, t)} isNewest={i === 0} />
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+// Past answers beyond this length get a clamp + "Show full answer" toggle.
+const CLAMP_CHARS = 220;
+
+function PastTurn({
+  turn,
+  topic,
+  isNewest,
+}: {
+  turn: Turn;
+  topic: string;
+  isNewest: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const answer = turn.answer ?? "";
+  const clampable = answer.length > CLAMP_CHARS;
+  return (
+    <li
+      className={`grid grid-cols-[3rem_minmax(0,1fr)] py-6 ${isNewest ? "animate-rise" : ""}`}
+    >
+      {/* Hanging turn number — same sequence the big "Question N" heading counts. */}
+      <span className="font-display text-lg font-medium leading-snug text-base-content/40">
+        {String(turn.turn_index + 1).padStart(2, "0")}
+      </span>
+      <div>
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          {topic && (
+            <span className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-base-content/50">
+              {topic}
+            </span>
+          )}
+          {turn.is_followup && (
+            <span className="inline-flex items-center gap-1 text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-accent/80">
+              <CornerDownRight className="h-3 w-3" /> Follow-up
+            </span>
+          )}
+        </div>
+        <p className="mt-1 font-display text-[1.15rem] font-medium leading-snug text-base-content/80">
+          {turn.question}
+        </p>
+        <p
+          className={`mt-2.5 whitespace-pre-line border-l-2 border-base-300 pl-4 text-[0.95rem] leading-relaxed text-base-content/70 ${
+            expanded ? "" : "line-clamp-3"
+          }`}
+        >
+          {answer}
+        </p>
+        {clampable && (
+          <button
+            className="mt-1.5 text-xs font-semibold text-primary hover:underline"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? "Show less" : "Show full answer"}
+          </button>
+        )}
+      </div>
+    </li>
   );
 }
 
