@@ -19,15 +19,15 @@ import {
 } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import { InterviewSkeleton } from "@/components/Skeletons";
+import ResponseTrail from "@/components/ResponseTrail";
 import {
   GetSession,
   MessageOf,
   SubmitAnswer,
   type SessionState,
   type SubmitAnswerResult,
-  type Turn,
 } from "@/lib/api";
-import { TargetLabel } from "@/lib/gaps";
+import { CoversFor } from "@/lib/gaps";
 
 const MAX_QUESTIONS = 12;
 // Soft limit: typing past it is allowed so nothing is silently swallowed, but
@@ -312,95 +312,6 @@ export default function InterviewClient() {
   );
 }
 
-// Read-only trail of answered turns, newest first, rendered beneath the live
-// question. Deliberately recessive: small serif questions, muted ink, clamped
-// answers — the current question keeps all the visual weight.
-function ResponseTrail({
-  gap,
-  turns,
-}: {
-  gap: SessionState["gap_analysis"];
-  turns: Turn[];
-}) {
-  const answered = turns.filter((t) => t.answer !== null).reverse();
-  if (answered.length === 0) return null;
-  return (
-    <div className="mt-16 border-t border-base-300 pt-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="eyebrow">
-          Your responses · {answered.length}
-        </p>
-        <p className="text-xs text-base-content/50">Newest first · read-only</p>
-      </div>
-      <ol className="mt-1 divide-y divide-base-300">
-        {answered.map((t, i) => (
-          <PastTurn key={t.turn_index} turn={t} topic={CoversFor(gap, t)} isNewest={i === 0} />
-        ))}
-      </ol>
-    </div>
-  );
-}
-
-// Past answers beyond this length get a clamp + "Show full answer" toggle.
-const CLAMP_CHARS = 220;
-
-function PastTurn({
-  turn,
-  topic,
-  isNewest,
-}: {
-  turn: Turn;
-  topic: string;
-  isNewest: boolean;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const answer = turn.answer ?? "";
-  const clampable = answer.length > CLAMP_CHARS;
-  return (
-    <li
-      className={`grid grid-cols-[3rem_minmax(0,1fr)] py-6 ${isNewest ? "animate-rise" : ""}`}
-    >
-      {/* Hanging turn number — same sequence the big "Question N" heading counts. */}
-      <span className="font-display text-lg font-medium leading-snug text-base-content/40">
-        {String(turn.turn_index + 1).padStart(2, "0")}
-      </span>
-      <div>
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-          {topic && (
-            <span className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-base-content/50">
-              {topic}
-            </span>
-          )}
-          {turn.is_followup && (
-            <span className="inline-flex items-center gap-1 text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-accent/80">
-              <CornerDownRight className="h-3 w-3" /> Follow-up
-            </span>
-          )}
-        </div>
-        <p className="mt-1 font-display text-[1.15rem] font-medium leading-snug text-base-content/80">
-          {turn.question}
-        </p>
-        <p
-          className={`mt-2.5 whitespace-pre-line border-l-2 border-base-300 pl-4 text-[0.95rem] leading-relaxed text-base-content/70 ${
-            expanded ? "" : "line-clamp-3"
-          }`}
-        >
-          {answer}
-        </p>
-        {clampable && (
-          <button
-            className="mt-1.5 text-xs font-semibold text-primary hover:underline"
-            aria-expanded={expanded}
-            onClick={() => setExpanded((v) => !v)}
-          >
-            {expanded ? "Show less" : "Show full answer"}
-          </button>
-        )}
-      </div>
-    </li>
-  );
-}
-
 function InfoItem({
   medallion,
   title,
@@ -489,14 +400,4 @@ function ApplyAnswer(
     question_count: result.question_count,
     turns,
   };
-}
-
-function CoversFor(
-  gap: SessionState["gap_analysis"],
-  turn: Turn,
-): string {
-  return turn.targets
-    .map((tid) => TargetLabel(gap, tid))
-    .filter((s): s is string => Boolean(s))
-    .join(" · ");
 }

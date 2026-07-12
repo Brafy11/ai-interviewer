@@ -7,6 +7,7 @@ import { ArrowLeft, CircleCheck, TriangleAlert, RotateCcw, Sparkles } from "luci
 import SiteHeader from "@/components/SiteHeader";
 import { ReportSkeleton } from "@/components/Skeletons";
 import GapBoard from "@/components/GapBoard";
+import ResponseTrail from "@/components/ResponseTrail";
 import { GetReport, GetSession, MessageOf, type Report, type SessionState } from "@/lib/api";
 import { CoveredTargets } from "@/lib/gaps";
 import { FormatDate } from "@/lib/format";
@@ -98,6 +99,15 @@ function ReportBody({ report, session }: { report: Report; session: SessionState
           Report {FormatDate(report.created_at)}
         </span>
       </div>
+      {session?.candidate_name && (
+        <p className="mt-3 font-display text-2xl text-base-content/80">
+          Assessment of{" "}
+          <span className="font-medium text-base-content">{session.candidate_name}</span>
+          {session.role?.title && (
+            <span className="text-base-content/60"> · {session.role.title}</span>
+          )}
+        </p>
+      )}
       <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-1">
         <h1 className={`font-display text-6xl font-medium tracking-tight sm:text-7xl ${v.text}`}>
           {v.label}
@@ -156,6 +166,20 @@ function ReportBody({ report, session }: { report: Report; session: SessionState
           <div className="mt-8">
             <GapBoard gap={session.gap_analysis} covered={CoveredTargets(session.turns)} />
           </div>
+        </section>
+      )}
+
+      {session && (
+        <section className="mt-16 border-t border-base-300 pt-10">
+          <p className="eyebrow text-primary">In the candidate’s own words</p>
+          <h2 className="mt-2 font-display text-3xl font-medium text-base-content">
+            The answers behind this assessment
+          </h2>
+          <ResponseTrail
+            gap={session.gap_analysis}
+            turns={session.turns}
+            label="Candidate responses"
+          />
         </section>
       )}
 
