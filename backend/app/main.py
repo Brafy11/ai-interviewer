@@ -46,7 +46,21 @@ def health() -> dict:
 # The Next.js static export (frontend/out) is copied here as app/static during
 # the Docker build (see Dockerfile). It doesn't exist in local dev, where the
 # Next dev server on :3000 serves the frontend instead.
-STATIC_DIR = Path(__file__).parent / "static"
+# .resolve() so the traversal guard in resolve_static can compare against an
+# absolute, symlink-free base.
+STATIC_DIR = (Path(__file__).parent / "static").resolve()
+
+
+def resolve_static(rel: str) -> Path | None:
+    # full_path comes straight from the URL, so a request like `../../etc/passwd`
+    # (or its percent-encoded form) would otherwise escape STATIC_DIR and serve
+    # arbitrary files. .resolve() collapses any `..` first; is_relative_to then
+    # rejects anything that landed outside the static dir. This is the check
+    # Starlette's StaticFiles does for us, which this hand-rolled route bypasses.
+    candidate = (STATIC_DIR / rel).resolve()
+    if candidate.is_relative_to(STATIC_DIR) and candidate.is_file():
+        return candidate
+    return None
 
 
 @app.get("/{full_path:path}")
@@ -56,10 +70,7 @@ def serve_frontend(full_path: str) -> FileResponse:
     # interview.html, report.html) rather than per-route directories, so a
     # request for "/interview" needs the ".html" appended by hand. Starlette's
     # StaticFiles(html=True) only resolves directory index.html, not this shape.
-    candidate = STATIC_DIR / full_path
-    if candidate.is_file():
-        return FileResponse(candidate)
-    html_candidate = STATIC_DIR / f"{full_path}.html"
-    if html_candidate.is_file():
-        return FileResponse(html_candidate)
+    found = resolve_static(full_path) or resolve_static(f"{full_path}.html")
+    if found:
+        return FileResponse(found)
     return FileResponse(STATIC_DIR / "index.html")
