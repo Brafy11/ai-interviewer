@@ -1,0 +1,105 @@
+@import "tailwindcss";
+@source "../app";
+@source "../components";
+
+/* DaisyUI 5 (Tailwind v4). Ship only our custom theme. */
+@plugin "daisyui" {
+  themes: false;
+}
+
+/* Clearhaven Home Care — burgundy on cream, olive + amber, Palatino-class serif.
+   (Replicating the reference demo's design language.) */
+@plugin "daisyui/theme" {
+  name: "clearhaven";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-base-100: #fffdf9; /* card surface (lightest) */
+  --color-base-200: #f7f3ed; /* page paper */
+  --color-base-300: #d4ccbf; /* taupe hairlines / wells */
+  --color-base-content: #272725; /* warm ink */
+
+  --color-primary: #741526; /* burgundy */
+  --color-primary-content: #fbf1ee;
+  --color-secondary: #65693e; /* olive */
+  --color-secondary-content: #f2f3ea;
+  --color-accent: #c97905; /* amber */
+  --color-accent-content: #2a1e08;
+  --color-neutral: #272725;
+  --color-neutral-content: #f7f3ed;
+
+  --color-info: #65693e;
+  --color-info-content: #f2f3ea;
+  --color-success: #65693e;
+  --color-success-content: #f2f3ea;
+  --color-warning: #c97905;
+  --color-warning-content: #2a1e08;
+  --color-error: #8d2031;
+  --color-error-content: #fbf1ee;
+
+  --radius-selector: 0.375rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.625rem; /* ~10px, matching the reference */
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* Non-color extensions only: fonts and shadows. All colors come from the
+   daisyUI theme slots above (softer tones are expressed as opacity variants,
+   e.g. text-base-content/70, bg-primary/10). */
+@theme {
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+    "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --shadow-soft: 0 24px 70px #45352314;
+  --shadow-card: 0 1px 2px #45352310, 0 18px 44px -24px #4535231f;
+}
+
+@layer base {
+  body {
+    @apply bg-base-200 text-base-content font-sans antialiased;
+    /* Reference's soft paper glow: two faint radial washes over the base paper. */
+    background-image:
+      radial-gradient(circle at 7% 0%, #ffffffeb, transparent 34rem),
+      radial-gradient(circle at 94% 12%, #fffaf0cc, transparent 32rem);
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  }
+  :where(a, button, input, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  /* Tracked-caps eyebrow (Inter) — the reference's label voice. */
+  .eyebrow {
+    @apply font-sans text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-base-content/70;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise {
+  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise {
+    animation: none !important;
+  }
+}

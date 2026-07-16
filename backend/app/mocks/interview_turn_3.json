@@ -1,0 +1,8 @@
+{
+  "question": "Your CPR and First Aid certification is listed as expired in 2024. Since a current certification is required, do you have a plan or timeline to renew it?",
+  "targets": ["weak_or_missing:2"],
+  "is_followup": false,
+  "reasoning": "Current CPR/First Aid is a medium-priority requirement and the resume shows an expired certification.",
+  "should_end": false,
+  "coverage_notes": "High-priority gaps covered. Moving to the expired CPR certification."
+}

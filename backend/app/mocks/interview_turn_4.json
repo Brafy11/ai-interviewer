@@ -1,0 +1,8 @@
+{
+  "question": "The role requires a current TB test. Have you completed a TB test recently, or would you need to arrange one?",
+  "targets": ["weak_or_missing:3"],
+  "is_followup": false,
+  "reasoning": "The TB test is a required clearance that is not mentioned anywhere in the resume.",
+  "should_end": false,
+  "coverage_notes": "CPR covered. Confirming TB test status, the last required clearance gap."
+}

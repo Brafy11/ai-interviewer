@@ -1,0 +1,40 @@
+{
+  "name": "Maria Delgado",
+  "summary": "Compassionate caregiver with about three years of experience supporting elderly clients in private homes and an assisted-living facility. Bilingual in English and Spanish.",
+  "work_experience": [
+    {
+      "role": "In-Home Caregiver",
+      "org": "Riverbend Home Care",
+      "duration": "March 2024 - Present",
+      "responsibilities": [
+        "Provide one-on-one care for two elderly clients with limited mobility",
+        "Assist with bathing, grooming, dressing, and other daily living activities",
+        "Prepare meals following dietary restrictions and handle light housekeeping",
+        "Give medication reminders and record daily care notes for the family"
+      ]
+    },
+    {
+      "role": "Care Aide",
+      "org": "Cedar Ridge Assisted Living",
+      "duration": "June 2022 - February 2024",
+      "responsibilities": [
+        "Supported 8-10 residents per shift with personal care and mobility",
+        "Helped residents transfer safely between bed and wheelchair",
+        "Accompanied residents to on-site appointments and activities"
+      ]
+    }
+  ],
+  "skills": [
+    "Personal care",
+    "Mobility and transfer assistance",
+    "Meal preparation",
+    "Care documentation",
+    "Companionship",
+    "Bilingual (English/Spanish)"
+  ],
+  "certifications": ["CPR/First Aid (American Red Cross, expired 2024)"],
+  "education": ["High school diploma - Fairview High School, Fairview, OH (2021)"],
+  "availability_notes": "Available weekdays; prefers daytime hours",
+  "transportation_notes": null,
+  "other_relevant": ["Comfortable working with clients who primarily speak Spanish"]
+}

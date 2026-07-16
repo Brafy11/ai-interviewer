@@ -1,0 +1,8 @@
+{
+  "question": "This position includes weekend and evening shifts. Your background suggests weekday daytime availability, so how open are you to working weekends and evenings?",
+  "targets": ["weak_or_missing:1"],
+  "is_followup": false,
+  "reasoning": "Weekend and evening availability is the other high-priority gap and directly conflicts with the stated weekday preference.",
+  "should_end": false,
+  "coverage_notes": "Transportation covered. Now probing weekend and evening availability."
+}
